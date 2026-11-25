@@ -1,17 +1,895 @@
-<!doctype html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LumiLink - 学生と教員をつなぐ成長支援プラットフォーム</title>
-    <meta name="description" content="LumiLinkは学生と教員の日常的なコミュニケーションを支援し、AIによる要約・タスク生成・成長可視化を行う教育現場向けプラットフォームです。" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>LumiLink プロトタイプ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one app column (max 960px). Sticky header + tab nav, a dashed "demo controls" strip that sits outside the product UI, screen IDs (S01–S09) tagged on every screen. */
+:root{
+  --bg:#F2F5F7; --surface:#FFFFFF; --sunk:#E8EEF2; --ink:#14222D; --muted:#566874; --line:#D5DFE5;
+  --accent:#1C5A85; --accent-ink:#FFFFFF; --accent-soft:#E2EEF6;
+  --lumi:#E8A817; --lumi-soft:#FCF1D3; --lumi-ink:#5B3F00;
+  --ok:#256F45; --ok-soft:#E1F1E7; --warn:#8F5600; --warn-soft:#FBEBD2; --bad:#AE2A21; --bad-soft:#F9E3E1;
+  --font-display:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Zen Kaku Gothic New",sans-serif;
+  --font-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E161C; --surface:#16212A; --sunk:#1D2A34; --ink:#E4ECF1; --muted:#98AAB6; --line:#2A3A46;
+  --accent:#73B5E2; --accent-ink:#0B1319; --accent-soft:#1B3245;
+  --lumi:#F2BE45; --lumi-soft:#3A2E10; --lumi-ink:#F7D88C;
+  --ok:#73C493; --ok-soft:#173326; --warn:#E6AA52; --warn-soft:#3A2A12; --bad:#F08C82; --bad-soft:#3D1D1A;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0E161C; --surface:#16212A; --sunk:#1D2A34; --ink:#E4ECF1; --muted:#98AAB6; --line:#2A3A46;
+  --accent:#73B5E2; --accent-ink:#0B1319; --accent-soft:#1B3245;
+  --lumi:#F2BE45; --lumi-soft:#3A2E10; --lumi-ink:#F7D88C;
+  --ok:#73C493; --ok-soft:#173326; --warn:#E6AA52; --warn-soft:#3A2A12; --bad:#F08C82; --bad-soft:#3D1D1A;
+  color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.7}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{text-wrap:balance;line-height:1.4;margin:0}
+h1{font-size:1.45rem;font-weight:700}
+h2{font-size:1.1rem;font-weight:700}
+h3{font-size:.98rem;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--lumi);outline-offset:2px;border-radius:4px}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:.84rem}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:10px;flex-wrap:wrap}
+.logo{font-family:var(--font-display);font-size:1.3rem;letter-spacing:.01em;display:flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;background:none;border:0;padding:0;cursor:pointer}
+.logo .dot{width:14px;height:14px;border-radius:50%;background:var(--lumi);box-shadow:0 0 0 4px var(--lumi-soft),0 0 14px 2px color-mix(in srgb,var(--lumi) 55%,transparent)}
+.uni{font-size:.82rem;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted)}
+.me{margin-left:auto;font-size:.85rem;color:var(--muted);text-align:right}
+.me b{color:var(--ink);font-weight:500}
+nav.tabs{border-top:1px solid var(--line)}
+nav.tabs .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 12px 8px;font:inherit;font-size:.92rem;color:var(--muted);cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--lumi);font-weight:700}
+nav.tabs button:disabled{opacity:.45;cursor:not-allowed}
+.badge-n{display:inline-block;min-width:1.4em;padding:0 5px;margin-left:4px;border-radius:999px;background:var(--lumi);color:#2B1E00;font-size:.72rem;font-weight:700;text-align:center;line-height:1.5}
+
+/* demo strip */
+.demo{border-bottom:1px dashed var(--line);background:repeating-linear-gradient(135deg,var(--sunk) 0 10px,var(--bg) 10px 20px)}
+.demo .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding-block:8px;font-size:.82rem}
+.demo .tag{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--bg);padding:1px 7px;border-radius:4px}
+.demo label{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.demo select,.demo button{font:inherit;font-size:.82rem}
+.demo .clock{font-family:var(--font-mono)}
+.demo .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+/* main */
+main{padding-block:22px 80px}
+.screen-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:16px}
+.screen-head h1{outline:none}
+.sid{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 6px;letter-spacing:.04em}
+.lead{color:var(--muted);margin-top:-8px;margin-bottom:18px;max-width:62ch}
+.back{background:none;border:0;padding:0;font:inherit;color:var(--accent);cursor:pointer;margin-bottom:10px;font-size:.9rem}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.panel.flat{background:transparent;border-style:dashed}
+.sec-title{font-size:.78rem;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:8px}
+hr.div{border:0;border-top:1px solid var(--line);margin:14px 0}
+
+/* buttons */
+.btn{font:inherit;font-size:.92rem;font-weight:700;border-radius:8px;padding:9px 16px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;line-height:1.4}
+.btn:hover{filter:brightness(1.08)}
+.btn.sec{background:transparent;color:var(--accent)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line);font-weight:500}
+.btn.danger{background:transparent;color:var(--bad);border-color:color-mix(in srgb,var(--bad) 50%,transparent);font-weight:500}
+.btn.sm{padding:5px 11px;font-size:.84rem}
+.btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
+.linkbtn{background:none;border:0;padding:0;font:inherit;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* chips, pills */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.8rem;padding:2px 10px;border-radius:999px;background:var(--sunk);color:var(--ink)}
+.fchip{font:inherit;font-size:.85rem;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.fchip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+.fchip[aria-pressed="true"]::before{content:"✓ "}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap;border:1px solid transparent}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.p-info{background:var(--accent-soft);color:var(--accent)}
+.p-go{background:var(--lumi-soft);color:var(--lumi-ink)}
+.p-ok{background:var(--ok-soft);color:var(--ok)}
+.p-warn{background:var(--warn-soft);color:var(--warn)}
+.p-bad{background:var(--bad-soft);color:var(--bad)}
+.p-end{background:transparent;color:var(--muted);border-color:var(--line)}
+.verified{display:inline-flex;align-items:center;gap:4px;font-size:.78rem;color:var(--ok);font-weight:700}
+.verified::before{content:"✓";display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;background:var(--ok);color:var(--surface);font-size:.62rem}
+
+/* filters */
+.filters{display:grid;gap:12px}
+.fgroup{display:grid;grid-template-columns:4.5em minmax(0,1fr);gap:8px;align-items:start}
+.fgroup > span{font-size:.84rem;font-weight:700;padding-top:5px}
+.result-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0 10px}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:9px;min-width:0}
+.card .name{font-weight:700;font-size:1.02rem}
+.card .meta{font-size:.84rem;color:var(--muted)}
+.card .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:6px}
+.avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--accent-soft);color:var(--accent);flex:none;font-size:1rem}
+.avatar.lg{width:64px;height:64px;font-size:1.4rem}
+.who{display:flex;gap:12px;align-items:center;min-width:0}
+
+/* list */
+.list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:14px 16px;border:0;border-bottom:1px solid var(--line);background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;width:100%}
+.item:last-child{border-bottom:0}
+.item:hover{background:var(--sunk)}
+.item .t{font-weight:700}
+.item .s{font-size:.84rem;color:var(--muted)}
+.item .r{grid-row:1 / span 2;grid-column:2;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.need{font-size:.75rem;color:var(--lumi-ink);background:var(--lumi-soft);padding:1px 8px;border-radius:4px;font-weight:700}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:5px}
+.field > label,.field > .lbl{font-weight:700;font-size:.9rem}
+.req{font-size:.72rem;color:var(--bad);margin-left:6px;font-weight:700}
+.opt{font-size:.72rem;color:var(--muted);margin-left:6px;font-weight:500}
+input[type=text],input[type=email],input[type=number],input[type=date],input[type=datetime-local],select,textarea{font:inherit;font-size:.95rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;max-width:100%}
+textarea{min-height:110px;resize:vertical}
+.field.err input,.field.err textarea,.field.err select{border-color:var(--bad)}
+.errmsg{color:var(--bad);font-size:.84rem;font-weight:500}
+.hint{font-size:.8rem;color:var(--muted)}
+.count{font-size:.78rem;color:var(--muted);text-align:right;font-family:var(--font-mono)}
+.count.over{color:var(--bad)}
+.checks{display:flex;flex-wrap:wrap;gap:6px 14px}
+.checks label{display:flex;gap:6px;align-items:center;font-size:.9rem;font-weight:400}
+.notice{border-radius:8px;padding:10px 14px;font-size:.88rem;display:flex;gap:10px;align-items:flex-start}
+.notice.info{background:var(--accent-soft);color:var(--ink)}
+.notice.warn{background:var(--warn-soft);color:var(--ink)}
+.notice.bad{background:var(--bad-soft);color:var(--ink)}
+.notice.ok{background:var(--ok-soft);color:var(--ink)}
+.notice.lumi{background:var(--lumi-soft);color:var(--ink)}
+.notice b{font-weight:700}
+.kv{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:6px 12px;font-size:.92rem}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.quote{background:var(--sunk);border-radius:8px;padding:12px 14px;white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* state track */
+.track{display:flex;gap:0;flex-wrap:wrap;margin:6px 0 4px;font-size:.76rem}
+.track span{padding:3px 10px 3px 14px;background:var(--sunk);color:var(--muted);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%,8px 50%);margin-right:-4px}
+.track span:first-child{clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%);padding-left:10px}
+.track span.done{background:var(--accent-soft);color:var(--accent)}
+.track span.cur{background:var(--accent);color:var(--accent-ink);font-weight:700}
+
+/* thread */
+.sched{border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;background:var(--surface)}
+.sched.confirmed{border-color:var(--ok);box-shadow:inset 4px 0 0 var(--ok)}
+.agree{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem}
+.agree span{display:flex;gap:6px;align-items:center}
+.agree .y{color:var(--ok);font-weight:700}
+.agree .n{color:var(--muted)}
+.msgs{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto;padding:4px 2px}
+.msg{max-width:min(80%,520px);padding:9px 13px;border-radius:12px;background:var(--sunk);white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.mine{align-self:flex-end;background:var(--accent-soft)}
+.msg .when{display:block;font-size:.72rem;color:var(--muted);margin-top:3px}
+.msg.sys{align-self:center;background:transparent;border:1px dashed var(--line);font-size:.82rem;color:var(--muted);max-width:100%;text-align:center}
+
+/* admin */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.stat .k{font-size:.82rem;color:var(--muted)}
+.stat .v{font-size:1.5rem;font-weight:700;font-family:var(--font-mono);font-variant-numeric:tabular-nums;line-height:1.3}
+.stat .v small{font-size:.85rem;color:var(--muted);font-weight:500}
+.stat .d{font-size:.76rem;color:var(--muted);margin-top:4px}
+.bar{height:6px;border-radius:3px;background:var(--sunk);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:560px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.78rem;color:var(--muted);font-weight:700;background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+
+/* preview */
+.preview{border:1px dashed var(--line);border-radius:var(--r);padding:14px;background:var(--bg)}
+
+/* modal + toast */
+.scrim{position:fixed;inset:0;background:color-mix(in srgb,#000 45%,transparent);display:grid;place-items:center;z-index:50;padding:16px}
+.dialog{background:var(--surface);border-radius:12px;max-width:460px;width:100%;padding:20px;display:flex;flex-direction:column;gap:12px;max-height:90vh;overflow:auto;border:1px solid var(--line)}
+.dialog .acts{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:.9rem;z-index:60;max-width:calc(100% - 32px);text-align:center}
+.empty{text-align:center;padding:36px 16px;color:var(--muted)}
+.empty b{display:block;color:var(--ink);margin-bottom:6px}
+.skeleton{height:150px;border-radius:var(--r);background:linear-gradient(90deg,var(--sunk),var(--surface),var(--sunk));background-size:200% 100%;animation:sh 1.2s infinite}
+@keyframes sh{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skeleton{animation:none}}
+.steps{display:flex;gap:6px;flex-wrap:wrap;font-size:.8rem;margin-bottom:14px}
+.steps span{padding:2px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.steps span.on{border-color:var(--accent);color:var(--accent);font-weight:700}
+footer{font-size:.78rem;color:var(--muted);padding-block:0 30px}
+</style>
+
+<div id="app"></div>
+<div id="modal-root"></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(()=>{
+"use strict";
+/* ---------- constants ---------- */
+const TZ='Asia/Tokyo', DAY=864e5, HOUR=36e5;
+const T0=Date.parse('2026-10-24T10:00:00+09:00');
+const ST={SENT:'送信済み',ACC:'承諾済み',SCHED:'日程確定',REP:'実施報告済み',DONE:'完了',DECL:'辞退',CANC:'取消',EXP:'期限切れ',REVIEW:'運営確認中'};
+const ACTIVE=[ST.SENT,ST.ACC,ST.SCHED,ST.REP];           // 受付上限に数える状態
+const OPEN=[...ACTIVE,ST.REVIEW];                          // 未完了
+const PILL={[ST.SENT]:'p-info',[ST.ACC]:'p-go',[ST.SCHED]:'p-go',[ST.REP]:'p-warn',[ST.DONE]:'p-ok',[ST.DECL]:'p-end',[ST.CANC]:'p-end',[ST.EXP]:'p-end',[ST.REVIEW]:'p-bad'};
+const TRACK=[ST.SENT,ST.ACC,ST.SCHED,ST.REP,ST.DONE];
+const INDUSTRIES=['金融','IT','メーカー','コンサルティング','公務'];
+const FACULTIES=['経済学部','文学部','理工学部','法学部'];
+const THEMES=['仕事の実態','業界研究','就職活動の進め方','文系からIT','キャリアチェンジ','大学院進学','公務員試験'];
+const DECLINE_REASONS=['今は対応できる時間がありません','相談内容に詳しくありません','受付を一時休止します','その他'];
+const REPORT_REASONS=['相談と関係のない勧誘','不快な言動','連絡先など個人情報の要求','その他'];
+const STORE='lumilink-proto-v1';
+
+/* ---------- helpers ---------- */
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const F=(o)=>new Intl.DateTimeFormat('ja-JP',{timeZone:TZ,...o});
+const fD=t=>F({month:'numeric',day:'numeric',weekday:'short'}).format(t);
+const fDT=t=>F({month:'numeric',day:'numeric',weekday:'short',hour:'2-digit',minute:'2-digit'}).format(t);
+const fT=t=>F({hour:'2-digit',minute:'2-digit'}).format(t);
+const jstLocal=t=>new Date(t+9*HOUR).toISOString().slice(0,16);
+const jstDate=t=>new Date(t+9*HOUR).toISOString().slice(0,10);
+const parseLocal=v=>Date.parse(v+':00+09:00');
+const ini=n=>(n||'?').trim().charAt(0);
+const len=s=>[...(s||'').trim()].length;
+const pct=(n,d)=>d? Math.round(n/d*100)+'％':'算出不可';
+
+/* ---------- seed data (all sample) ---------- */
+function seed(){
+  const t=T0, d=n=>t+n*DAY;
+  const msg=(by,text,at)=>({by,text,at});
+  return {
+    now:t, role:'student', me:{student:'s1',alumni:'a1'}, failNet:false, seq:200,
+    users:{
+      s1:{id:'s1',role:'student',name:'田中 ゆい',faculty:'経済学部',year:'3年',email:'y.tanaka@stu.emc.example',status:'確認済み'},
+      s2:{id:'s2',role:'student',name:'小林 蓮',faculty:'文学部',year:'2年',email:'r.kobayashi@stu.emc.example',status:'確認済み'},
+      s3:{id:'s3',role:'student',name:'加藤 さくら',faculty:'理工学部',year:'3年',email:'s.kato@stu.emc.example',status:'確認済み'},
+      s4:{id:'s4',role:'student',name:'吉田 陸',faculty:'経済学部',year:'4年',email:'r.yoshida@stu.emc.example',status:'確認済み'},
+      a1:{id:'a1',role:'alumni',name:'山本 健太',email:'k.yamamoto@example.com',status:'確認済み'},
+      a2:{id:'a2',role:'alumni',name:'鈴木 美咲',email:'m.suzuki@example.com',status:'確認済み'},
+      a3:{id:'a3',role:'alumni',name:'高橋 翔',email:'s.takahashi@example.com',status:'確認済み'},
+      a4:{id:'a4',role:'alumni',name:'伊藤 由佳',email:'y.ito@example.com',status:'確認済み'},
+      a5:{id:'a5',role:'alumni',name:'渡辺 大輔',email:'d.watanabe@example.com',status:'確認済み'}
+    },
+    profiles:{
+      a1:{display:'山本 健太',faculty:'経済学部',grad:'2016',industry:'金融',job:'銀行の法人営業',themes:['仕事の実態','業界研究','就職活動の進め方'],intro:'地方銀行で中小企業向けの融資と事業支援を担当しています。数字だけでなく経営者の話を聞く仕事です。金融業界の実際や、経済学部での学びがどう役立つかをお話しできます。',public:true,open:true,limit:3},
+      a2:{display:'鈴木 美咲',faculty:'文学部',grad:'2018',industry:'IT',job:'プロダクトマネージャー',themes:['文系からIT','仕事の実態','キャリアチェンジ'],intro:'出版社の編集職からIT企業へ転職し、学習アプリの企画を担当しています。文系出身でITを選んだ理由や、転職のタイミングについて話せます。',public:true,open:true,limit:2},
+      a3:{display:'高橋 翔',faculty:'理工学部',grad:'2014',industry:'メーカー',job:'素材メーカーの研究開発',themes:['大学院進学','仕事の実態','業界研究'],intro:'修士課程を経て素材メーカーで電池材料の研究をしています。大学院に進むか迷っている人、メーカーの研究職の一日を知りたい人はどうぞ。',public:true,open:true,limit:2},
+      a4:{display:'伊藤 由佳',faculty:'経済学部',grad:'2019',industry:'コンサルティング',job:'経営コンサルタント',themes:['就職活動の進め方','業界研究'],intro:'コンサルティング会社で製造業の業務改善を支援しています。ケース面接の準備や、コンサル業界の働き方について話せます。',public:true,open:true,limit:1},
+      a5:{display:'渡辺 大輔',faculty:'法学部',grad:'2012',industry:'公務',job:'県庁の行政職',themes:['公務員試験','仕事の実態'],intro:'県庁で福祉・まちづくりの部署を経験しました。公務員試験の準備と、入庁後の異動の実際をお話しできます。',public:true,open:false,limit:1}
+    },
+    requests:[
+      {id:'R-0101',studentId:'s1',alumniId:'a3',theme:'大学院進学',question:'理工学部ではないのですが、経済学部から研究職に近い仕事に進む道はあるのか知りたいです。高橋さんが大学院進学を決めた時期も伺いたいです。',pref:'オンライン・平日夜',state:ST.DONE,sentAt:d(-12),expiresAt:d(-5),acceptedAt:d(-11),updatedAt:d(-2),completedAt:d(-2),
+        messages:[msg('alumni','ご依頼ありがとうございます。平日夜なら対応できます。候補を出しますね。',d(-11)),msg('student','ありがとうございます！よろしくお願いします。',d(-11)+HOUR)],
+        proposals:[{v:1,startAt:d(-3)+9*HOUR,method:'オンライン',duration:30,by:'alumni',agreed:{student:true,alumni:true}}],reports:{student:true,alumni:true},reflection:null},
+      {id:'R-0102',studentId:'s1',alumniId:'a2',theme:'文系からIT',question:'IT業界に興味がありますが、プログラミング経験がありません。文系からPMになるまでに、どんな準備をしたのか教えてほしいです。',pref:'オンライン',state:ST.SCHED,sentAt:d(-3),expiresAt:d(4),acceptedAt:d(-2),updatedAt:d(-1),
+        messages:[msg('alumni','田中さん、はじめまして。鈴木です。文系からIT、私もまさにその道でした。日程の候補を出しました。',d(-2)),msg('student','鈴木さん、ありがとうございます。27日でお願いします。当日までに聞きたいことを整理しておきます。',d(-1))],
+        proposals:[{v:1,startAt:Date.parse('2026-10-27T19:00:00+09:00'),method:'オンライン',duration:30,by:'alumni',agreed:{student:true,alumni:true}}],reports:{student:false,alumni:false},reflection:null},
+      {id:'R-0103',studentId:'s1',alumniId:'a5',theme:'公務員試験',question:'公務員と民間で迷っています。試験勉強をいつ始めたか伺いたいです。',pref:'',state:ST.DECL,sentAt:d(-9),expiresAt:d(-2),updatedAt:d(-8),endReason:'今は対応できる時間がありません',endBy:'alumni',messages:[],proposals:[],reports:{student:false,alumni:false},reflection:null},
+      {id:'R-0104',studentId:'s2',alumniId:'a1',theme:'業界研究',question:'金融業界の中で銀行・証券・保険の違いがよく分かりません。実際に働いてみて感じる違いを教えてください。',pref:'オンライン・土日',state:ST.SENT,sentAt:d(-2),expiresAt:d(5),updatedAt:d(-2),messages:[],proposals:[],reports:{student:false,alumni:false},reflection:null},
+      {id:'R-0105',studentId:'s3',alumniId:'a1',theme:'仕事の実態',question:'理系から銀行に就職する人は少ないと聞きます。法人営業で理系の知識が役立つ場面はありますか。',pref:'対面でも可',state:ST.ACC,sentAt:d(-4),expiresAt:d(3),acceptedAt:d(-3),updatedAt:d(-3),
+        messages:[msg('alumni','加藤さん、ご依頼ありがとうございます。日程を相談させてください。',d(-3))],proposals:[],reports:{student:false,alumni:false},reflection:null},
+      {id:'R-0106',studentId:'s3',alumniId:'a4',theme:'就職活動の進め方',question:'ケース面接の練習方法を知りたいです。どれくらい前から準備しましたか。',pref:'オンライン',state:ST.SENT,sentAt:d(-1),expiresAt:d(6),updatedAt:d(-1),messages:[],proposals:[],reports:{student:false,alumni:false},reflection:null},
+      {id:'R-0107',studentId:'s2',alumniId:'a2',theme:'キャリアチェンジ',question:'最初の就職先と違う業界へ移るときに不安はありましたか。',pref:'',state:ST.EXP,sentAt:d(-15),expiresAt:d(-8),updatedAt:d(-8),endReason:'7日以内に回答がなかったため期限切れ',messages:[],proposals:[],reports:{student:false,alumni:false},reflection:null},
+      {id:'R-0108',studentId:'s4',alumniId:'a3',theme:'仕事の実態',question:'メーカーの研究職の一日の流れを知りたいです。',pref:'',state:ST.DONE,sentAt:d(-14),expiresAt:d(-7),acceptedAt:d(-13),updatedAt:d(-6),completedAt:d(-6),messages:[],proposals:[{v:1,startAt:d(-7),method:'対面',duration:45,by:'alumni',agreed:{student:true,alumni:true}}],reports:{student:true,alumni:true},reflection:null}
+    ],
+    pending:[
+      {id:'P-01',name:'松本 葵',role:'学生',faculty:'法学部 2年',email:'a.matsumoto@stu.emc.example',evidence:'大学メール到達確認済み・学籍番号 22L0417',at:d(-1)},
+      {id:'P-02',name:'井上 拓也',role:'卒業生',faculty:'経済学部 2015年卒',email:'t.inoue@example.com',evidence:'卒業生名簿との照合待ち（卒業年・学部を申告）',at:d(-2)}
+    ],
+    reports:[
+      {id:'C-001',target:'R-0107 の相手',by:'学生',reason:'相談と関係のない勧誘',detail:'メッセージで外部セミナーへの参加を繰り返し勧められた（サンプル）',status:'対応中',at:d(-6),log:[{at:d(-6),text:'通報を受付'},{at:d(-5),text:'担当者が依頼当事者のメッセージを確認（案件番号・理由を記録）'}]}
+    ],
+    interventions:[{at:d(-3),req:'R-0105',kind:'日程未決時の案内',min:10},{at:d(-9),req:'—',kind:'卒業生募集の連絡',min:25}],
+    audit:[{at:d(-6),who:'管理者 森',act:'例外閲覧',target:'C-001',reason:'通報対応のためメッセージを確認'},{at:d(-20),who:'管理者 森',act:'承認',target:'a5 渡辺 大輔',reason:'卒業生名簿と照合'}],
+    blocks:[],
+    guest:{step:'form',name:'',email:'',kind:'学生',extra:'',error:{},pendingId:null},
+    view:{name:'search',params:{}},
+    filters:{ind:[],fac:[],theme:[],openOnly:false},
+    adminTab:'verify'
+  };
+}
+
+/* ---------- state ---------- */
+let S;
+try{ const raw=localStorage.getItem(STORE); S=raw?JSON.parse(raw):null; }catch(e){ S=null; }
+if(!S||!S.users) S=seed();
+let draft=null, searchStatus='ok', lastView='';
+const save=()=>{ try{ localStorage.setItem(STORE,JSON.stringify(S)); }catch(e){} };
+const nextId=p=>p+'-'+String(++S.seq).padStart(4,'0');
+const me=()=>S.role==='student'?S.users[S.me.student]:S.role==='alumni'?S.users[S.me.alumni]:null;
+const side=()=>S.role; // 'student' | 'alumni'
+const other=r=>S.role==='student'?S.users[r.alumniId]:S.users[r.studentId];
+const req=id=>S.requests.find(r=>r.id===id);
+const cur=r=>r.proposals[r.proposals.length-1]||null;
+const activeCount=aid=>S.requests.filter(r=>r.alumniId===aid&&ACTIVE.includes(r.state)).length;
+const isBlocked=(sid,aid)=>S.blocks.some(b=>b.studentId===sid&&b.alumniId===aid);
+const log=(act,target,reason)=>S.audit.unshift({at:S.now,who:'管理者 森',act,target,reason});
+const sysMsg=(r,text)=>r.messages.push({by:'system',text,at:S.now});
+
+function sweep(){
+  S.requests.forEach(r=>{ if(r.state===ST.SENT&&S.now>r.expiresAt){ r.state=ST.EXP; r.endReason='7日以内に回答がなかったため期限切れ'; r.updatedAt=r.expiresAt; }});
+}
+
+function canRequest(aid){
+  const u=me(), p=S.profiles[aid];
+  if(S.role!=='student') return {ok:false,reason:'相談の依頼は学生だけが行えます。'};
+  if(u.status!=='確認済み') return {ok:false,reason:'大学の参加確認が終わると依頼できます。'};
+  if(isBlocked(u.id,aid)) return {ok:false,reason:'連絡を遮断しているため依頼できません。'};
+  const ex=S.requests.find(r=>r.studentId===u.id&&r.alumniId===aid&&OPEN.includes(r.state));
+  if(ex) return {ok:false,existing:ex,reason:'この先輩との相談が進行中です。'};
+  if(!p.open) return {ok:false,reason:'現在は受付を休止しています。'};
+  if(activeCount(aid)>=p.limit) return {ok:false,reason:'受付上限に達しているため、新しい依頼は送れません（満枠）。'};
+  return {ok:true};
+}
+function availability(aid){
+  const p=S.profiles[aid];
+  if(!p.open) return {label:'受付休止中',cls:'p-end'};
+  if(activeCount(aid)>=p.limit) return {label:'満枠',cls:'p-warn'};
+  return {label:'受付中',cls:'p-ok'};
+}
+
+/* ---------- navigation ---------- */
+function go(name,params={}){ S.view={name,params}; save(); render(); window.scrollTo(0,0); }
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,3200); }
+
+/* ---------- modal ---------- */
+let modalOk=null;
+function modal({title,body,ok='OK',danger=false,onOk}){
+  modalOk=onOk;
+  document.getElementById('modal-root').innerHTML=`<div class="scrim" data-act="modal-bg"><form class="dialog" role="dialog" aria-modal="true" aria-labelledby="mt" data-form="modal">
+    <h2 id="mt">${esc(title)}</h2><div class="stack">${body}</div><p class="errmsg" id="merr" hidden></p>
+    <div class="acts"><button type="button" class="btn ghost" data-act="modal-close">戻る</button><button type="submit" class="btn ${danger?'danger':''}">${esc(ok)}</button></div></form></div>`;
+  const f=document.querySelector('.dialog'); (f.querySelector('select,textarea,input')||f.querySelector('[type=submit]')).focus();
+}
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; modalOk=null; }
+
+/* ---------- shell ---------- */
+function navItems(){
+  if(S.role==='guest') return [['register','登録と参加確認']];
+  if(S.role==='admin') return [['admin','大学管理']];
+  const n=S.requests.filter(r=>S.role==='student'? r.studentId===S.me.student&&needsMe(r) : r.alumniId===S.me.alumni&&needsMe(r)).length;
+  const base=[['search','先輩を探す'],['requests','相談',n],['settings',S.role==='alumni'?'プロフィールと受付':'自分の設定']];
+  return base;
+}
+function needsMe(r){
+  const s=side();
+  if(r.state===ST.SENT) return s==='alumni';
+  if(r.state===ST.ACC){ const p=cur(r); return !p || !p.agreed[s]; }
+  if(r.state===ST.SCHED){ const p=cur(r); return S.now>=p.startAt && !r.reports[s]; }
+  if(r.state===ST.REP) return !r.reports[s];
+  if(r.state===ST.DONE&&s==='student') return !r.reflection || (r.reflection&&!r.reflection.follow&&S.now>=r.completedAt+14*DAY);
+  return false;
+}
+const viewNav={search:'search',profile:'search',request:'search',requests:'requests',detail:'requests',thread:'requests',reflect:'requests',settings:'settings',admin:'admin',register:'register'};
+
+function render(){
+  sweep();
+  if(S.role==='guest'&&S.view.name!=='register') S.view={name:'register',params:{}};
+  if(S.role==='admin'&&S.view.name!=='admin') S.view={name:'admin',params:{}};
+  if((S.role==='student'||S.role==='alumni')&&['admin','register'].includes(S.view.name)) S.view={name:S.role==='alumni'?'requests':'search',params:{}};
+  const u=me();
+  const roleLabel={student:'学生',alumni:'卒業生',admin:'大学管理者',guest:'新規登録'}[S.role];
+  const who= u? `<b>${esc(u.name)}</b>（${roleLabel}）` : S.role==='admin'?'<b>管理者 森</b>（キャリアセンター）':'未ログイン';
+  const active=viewNav[S.view.name];
+  document.getElementById('app').innerHTML=`
+  <header class="top">
+    <div class="wrap">
+      <button class="logo" data-act="home" aria-label="LumiLink ホーム"><span class="dot" aria-hidden="true"></span>LumiLink</button>
+      <span class="uni">EMC大学</span>
+      <span class="me">${who}</span>
+    </div>
+    <nav class="tabs" aria-label="メインメニュー"><div class="wrap">
+      ${navItems().map(([k,l,n])=>`<button data-act="nav" data-to="${k}" ${active===k?'aria-current="page"':''}>${l}${n?`<span class="badge-n" aria-label="対応待ち${n}件">${n}</span>`:''}</button>`).join('')}
+    </div></nav>
+  </header>
+  <div class="demo" aria-label="プロトタイプ用のデモ操作"><div class="wrap">
+    <span class="tag">Demo</span>
+    <label>視点 <select id="demo-role" data-change="role">
+      <option value="student" ${S.role==='student'?'selected':''}>学生：田中 ゆい</option>
+      <option value="alumni" ${S.role==='alumni'?'selected':''}>卒業生：山本 健太</option>
+      <option value="admin" ${S.role==='admin'?'selected':''}>大学管理者</option>
+      <option value="guest" ${S.role==='guest'?'selected':''}>新規登録者</option>
+    </select></label>
+    <span class="grp">現在 <span class="clock">${fDT(S.now)}</span>
+      <button class="btn ghost sm" data-act="time" data-h="3">+3時間</button>
+      <button class="btn ghost sm" data-act="time" data-h="24">+1日</button>
+      <button class="btn ghost sm" data-act="time" data-h="168">+7日</button></span>
+    <label><input type="checkbox" id="demo-fail" data-change="fail" ${S.failNet?'checked':''}> 通信失敗を再現</label>
+    <button class="btn ghost sm" data-act="reset">初期状態に戻す</button>
+  </div></div>
+  <main class="wrap" id="main">${views[S.view.name]?views[S.view.name](S.view.params):''}</main>
+  <footer class="wrap">プロトタイプ（企画・検証用）。表示している人物・相談内容はすべてサンプルです。実際の対話は対面または既存の通話手段で行います。</footer>`;
+  const key=S.view.name+JSON.stringify(S.view.params);
+  if(key!==lastView){ lastView=key; const h=document.querySelector('main h1'); if(h){h.setAttribute('tabindex','-1'); h.focus({preventScroll:true});} }
+  afterRender();
+}
+function head(id,title,lead){ return `<div class="screen-head"><h1>${esc(title)}</h1><span class="sid">${id}</span></div>${lead?`<p class="lead">${lead}</p>`:''}`; }
+const pill=s=>`<span class="pill ${PILL[s]||'p-end'}">${esc(s)}</span>`;
+const denied=()=>`${head('—','表示できません')}<div class="panel empty"><b>この相談を表示する権限がありません</b>相談の当事者だけが内容を見られます。<div style="margin-top:12px"><button class="btn sec" data-act="nav" data-to="requests">相談一覧へ</button></div></div>`;
+
+/* ---------- views ---------- */
+const views={};
+
+/* S02 先輩を探す */
+views.search=()=>{
+  const f=S.filters;
+  const grp=(key,label,list)=>`<div class="fgroup" role="group" aria-label="${label}"><span>${label}</span><div class="chips">${list.map(v=>`<button class="fchip" data-act="filter" data-k="${key}" data-v="${esc(v)}" aria-pressed="${f[key].includes(v)}">${esc(v)}</button>`).join('')}</div></div>`;
+  let results='';
+  if(searchStatus==='loading') results=`<div class="cards">${'<div class="skeleton"></div>'.repeat(3)}</div>`;
+  else if(searchStatus==='error') results=`<div class="panel empty"><b>先輩の一覧を読み込めませんでした</b>通信状態を確認して、もう一度読み込んでください。条件はそのまま残っています。<div style="margin-top:12px"><button class="btn" data-act="reload">再読み込み</button></div></div>`;
+  else{
+    const list=Object.entries(S.profiles).filter(([id,p])=>p.public&&S.users[id].status==='確認済み'&&id!==S.me.alumni+(S.role==='alumni'?'':'_'))
+      .filter(([id,p])=>(!f.ind.length||f.ind.includes(p.industry))&&(!f.fac.length||f.fac.includes(p.faculty))&&(!f.theme.length||p.themes.some(t=>f.theme.includes(t)))&&(!f.openOnly||availability(id).label==='受付中'));
+    results=`<div class="result-bar"><span><b class="mono">${list.length}</b> 人の先輩</span><span class="hint">同じ分類の中は「いずれか」、分類どうしは「すべて」に当てはまる人を表示</span></div>`+
+    (list.length? `<div class="cards">${list.map(([id,p])=>{const a=availability(id);return `<article class="card">
+      <div class="who"><div class="avatar" aria-hidden="true">${esc(ini(p.display))}</div><div style="min-width:0"><div class="name">${esc(p.display)}</div><div class="verified">所属確認済み</div></div></div>
+      <div class="meta">${esc(p.faculty)} ${esc(p.grad)}年卒 ／ ${esc(p.industry)}・${esc(p.job)}</div>
+      <div class="chips">${p.themes.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>
+      <div class="foot"><span class="pill ${a.cls}">${a.label}</span><button class="btn sec sm" data-act="go" data-to="profile" data-id="${id}">詳しく見る</button></div></article>`;}).join('')}</div>`
+    : `<div class="panel empty"><b>条件に合う先輩が見つかりませんでした</b>条件を減らして探してみてください。<div style="margin-top:12px"><button class="btn sec" data-act="clear">条件を解除</button></div></div>`);
+  }
+  return head('S02','先輩を探す','EMC大学が所属を確認した卒業生だけが表示されます。仕事・学部・話せるテーマから、聞いてみたい先輩を選んでください。')+
+  `<section class="panel filters" aria-label="検索条件">${grp('ind','仕事',INDUSTRIES)}${grp('fac','学部',FACULTIES)}${grp('theme','関心',THEMES)}
+    <div class="row" style="justify-content:space-between"><label class="row" style="gap:6px"><input type="checkbox" id="open-only" data-change="openonly" ${f.openOnly?'checked':''}> 受付中の先輩だけ表示</label>
+    <button class="linkbtn" data-act="clear">条件を解除</button></div></section>`+results;
+};
+
+/* S03 先輩プロフィール */
+views.profile=({id})=>{
+  const p=S.profiles[id], u=S.users[id]; if(!p) return denied();
+  const a=availability(id), c=canRequest(id);
+  let cta='';
+  if(S.role==='student'){
+    if(c.ok) cta=`<button class="btn" data-act="go" data-to="request" data-id="${id}">相談を依頼する</button>`;
+    else if(c.existing) cta=`<div class="notice info">${esc(c.reason)}</div><button class="btn sec" data-act="go" data-to="detail" data-id="${c.existing.id}">相談を開く</button>`;
+    else cta=`<button class="btn" disabled>相談を依頼する</button><p class="hint">${esc(c.reason)}</p>`;
+  } else cta=`<p class="hint">相談の依頼は学生だけが行えます。</p>`;
+  return `<button class="back" data-act="nav" data-to="search">← 先輩を探すへ戻る（条件はそのまま）</button>`+head('S03','先輩プロフィール')+
+  `<div class="grid2"><section class="panel stack">
+    <div class="who"><div class="avatar lg" aria-hidden="true">${esc(ini(p.display))}</div><div><h2>${esc(p.display)}</h2><div class="verified">所属確認済み</div><p class="hint">大学が所属を確認したことを示します。助言の正確さを保証するものではありません。</p></div></div>
+    <dl class="kv"><dt>学部</dt><dd>${esc(p.faculty)}（${esc(p.grad)}年卒）</dd><dt>仕事</dt><dd>${esc(p.industry)}／${esc(p.job)}</dd></dl>
+    <div><div class="sec-title">話せるテーマ</div><div class="chips">${p.themes.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div></div>
+    <div><div class="sec-title">自己紹介</div><p style="max-width:62ch">${esc(p.intro)}</p></div>
+  </section>
+  <aside class="stack">
+    <div class="panel stack"><div class="sec-title">受付状況</div>
+      <div class="row"><span class="pill ${a.cls}">${a.label}</span><span class="small muted">同時に受け付ける相談 <span class="mono">${activeCount(id)} / ${p.limit}</span> 件</span></div>
+      ${cta}</div>
+    <div class="panel flat stack"><p class="small muted">連絡先や確認書類は公開されません。気になるやり取りがあれば運営に知らせてください。</p>
+      <button class="btn danger sm" style="align-self:flex-start" data-act="report" data-target="${esc(p.display)}（プロフィール）">通報する</button></div>
+  </aside></div>`;
+};
+
+/* S04 相談を依頼する */
+views.request=({id,prev})=>{
+  if(S.role!=='student') return denied();
+  const p=S.profiles[id];
+  if(!draft||draft.alumniId!==id||draft.prevId!==(prev||null)) draft={alumniId:id,prevId:prev||null,theme:'',question:'',pref:'',step:'edit',errors:{},sending:false,error:'',key:null};
+  const c=canRequest(id);
+  if(!c.ok&&!draft.sending) return `<button class="back" data-act="go" data-to="profile" data-id="${id}">← プロフィールへ戻る</button>`+head('S04','相談を依頼する')+`<div class="notice warn">${esc(c.reason)}</div>`;
+  const prevR=prev?req(prev):null;
+  const steps=`<div class="steps" aria-label="手順"><span class="${draft.step==='edit'?'on':''}">1 内容を書く</span><span class="${draft.step==='confirm'?'on':''}">2 確認して送信</span></div>`;
+  const target=`<div class="panel row" style="gap:14px"><div class="avatar" aria-hidden="true">${esc(ini(p.display))}</div><div style="min-width:0"><b>${esc(p.display)}</b> さんへの依頼<div class="chips" style="margin-top:4px">${p.themes.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div></div></div>`;
+  const prevNote=prevR?`<div class="notice lumi"><span>前回の相談 <span class="mono">${prevR.id}</span>（${esc(prevR.theme)}・${fD(prevR.completedAt||prevR.updatedAt)}）の続きとして送ります。質問はあらためて書いてください。</span></div>`:'';
+  if(draft.step==='confirm'){
+    return head('S04','依頼内容の確認')+steps+`<div class="stack">${target}${prevNote}
+      <section class="panel"><dl class="kv"><dt>相談テーマ</dt><dd>${esc(draft.theme)}</dd><dt>聞きたいこと</dt><dd><div class="quote">${esc(draft.question.trim())}</div></dd><dt>希望</dt><dd>${esc(draft.pref.trim()||'指定なし')}</dd><dt>回答期限</dt><dd>送信から7日間（${fD(S.now+7*DAY)}まで）</dd></dl></section>
+      ${draft.error?`<div class="notice bad" role="alert">${esc(draft.error)}</div>`:''}
+      <div class="row"><button class="btn ghost" data-act="draft-back" ${draft.sending?'disabled':''}>内容を直す</button><button class="btn" data-act="send" ${draft.sending?'disabled':''}>${draft.sending?'送信しています…':'依頼を送信'}</button></div></div>`;
+  }
+  const e=draft.errors, ql=len(draft.question);
+  return `<button class="back" data-act="go" data-to="profile" data-id="${id}">← プロフィールへ戻る</button>`+head('S04','相談を依頼する')+steps+
+  `<form class="stack" data-form="draft" novalidate>${target}${prevNote}
+    <div class="field ${e.theme?'err':''}"><label for="f-theme">相談テーマ<span class="req">必須</span></label>
+      <select id="f-theme" name="theme" aria-describedby="e-theme"><option value="">選んでください</option>${p.themes.map(t=>`<option ${draft.theme===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
+      ${e.theme?`<span class="errmsg" id="e-theme">${e.theme}</span>`:''}</div>
+    <div class="field ${e.question?'err':''}"><label for="f-q">聞きたいこと<span class="req">必須</span></label>
+      <span class="hint" id="h-q">10〜500字。いま迷っていること、すでに調べたことを書くと先輩が答えやすくなります。</span>
+      <textarea id="f-q" name="question" aria-describedby="h-q e-q" data-count="500" placeholder="例：金融業界に興味があります。銀行の法人営業は1日にどんな仕事をしていますか。">${esc(draft.question)}</textarea>
+      <div class="count ${ql>500?'over':''}" data-counter="f-q">${ql} / 500</div>
+      ${e.question?`<span class="errmsg" id="e-q">${e.question}</span>`:''}</div>
+    <div class="field"><label for="f-pref">希望する方法・時間帯<span class="opt">任意</span></label>
+      <input type="text" id="f-pref" name="pref" maxlength="100" value="${esc(draft.pref)}" placeholder="例：オンライン・平日19時以降"></div>
+    <div class="notice warn"><span><b>連絡先などの機微な情報は書かないでください。</b>日程やつなぎ方は、承諾後のメッセージで相談できます。</span></div>
+    <div><button type="submit" class="btn">内容を確認</button></div></form>`;
+};
+
+/* S05 相談一覧 */
+views.requests=()=>{
+  const mine=S.requests.filter(r=>S.role==='student'?r.studentId===S.me.student:r.alumniId===S.me.alumni).sort((a,b)=>b.updatedAt-a.updatedAt);
+  const open=mine.filter(r=>OPEN.includes(r.state)||(r.state===ST.DONE&&needsMe(r))), closed=mine.filter(r=>!open.includes(r));
+  const row=r=>{const o=other(r); const label=S.role==='student'?S.profiles[r.alumniId].display:`${o.name}（${o.faculty} ${o.year}）`;
+    return `<button class="item" data-act="go" data-to="detail" data-id="${r.id}"><span class="t">${esc(label)}</span>
+    <span class="s">${esc(r.theme)} ・ 更新 ${fD(r.updatedAt)}${r.state===ST.SENT?` ・ 回答期限 ${fD(r.expiresAt)}`:''}</span>
+    <span class="r">${pill(r.state)}${needsMe(r)?'<span class="need">あなたの対応待ち</span>':''}</span></button>`;};
+  const lead=S.role==='student'?'送った依頼と、その後のやり取りをまとめています。':'あなた宛てに届いた相談です。依頼は送信から7日で期限切れになります。';
+  return head('S05',S.role==='student'?'相談':'届いた相談',lead)+
+   `<div class="stack"><div><div class="sec-title">進行中</div>${open.length?`<div class="list">${open.map(row).join('')}</div>`:`<div class="panel empty"><b>進行中の相談はありません</b>${S.role==='student'?'<button class="btn sec" data-act="nav" data-to="search" style="margin-top:10px">先輩を探す</button>':'新しい依頼が届くとここに表示されます。'}</div>`}</div>
+   <div><div class="sec-title">終了</div>${closed.length?`<div class="list">${closed.map(row).join('')}</div>`:'<p class="hint">終了した相談はまだありません。</p>'}</div></div>`;
+};
+
+/* S05 依頼詳細 */
+views.detail=({id})=>{
+  const r=req(id); if(!r||!isParty(r)) return denied();
+  const o=other(r), s=side(), p=cur(r);
+  const name=s==='student'?S.profiles[r.alumniId].display:o.name;
+  const idx=TRACK.indexOf(r.state);
+  const track=`<div class="track" aria-label="相談の進み具合">${TRACK.map((t,i)=>`<span class="${i<idx?'done':i===idx?'cur':''}">${t}</span>`).join('')}</div>`;
+  const A=[];
+  const btn=(act,label,cls='btn',extra='')=>`<button class="${cls}" data-act="${act}" data-id="${r.id}" ${extra}>${label}</button>`;
+  if(r.state===ST.SENT){
+    if(s==='alumni'){ A.push(btn('accept','承諾する')); A.push(btn('decline','辞退する','btn danger')); }
+    else A.push(btn('cancel','依頼を取り消す','btn danger'));
+  } else if(r.state===ST.ACC){
+    A.push(btn('thread','メッセージと日程へ')); A.push(btn('cancel','相談を取り消す','btn danger'));
+  } else if(r.state===ST.SCHED){
+    A.push(btn('thread','日程を見る')); A.push(btn('thread','変更を提案','btn sec')); A.push(btn('cancel','相談を取り消す','btn danger'));
+  } else if(r.state===ST.REP){
+    if(!r.reports[s]){ A.push(btn('report-done','実施を確認する')); A.push(btn('not-done','実施していない','btn danger')); }
+    else A.push(`<p class="hint">相手の実施確認を待っています。</p>`);
+    A.push(btn('thread','メッセージを見る','btn ghost'));
+  } else if(r.state===ST.DONE){
+    if(s==='student'){ A.push(btn('reflect',r.reflection?'振り返りを見る':'振り返りを書く')); if(canRequest(r.alumniId).ok) A.push(`<button class="btn sec" data-act="go" data-to="request" data-id="${r.alumniId}" data-prev="${r.id}">もう一度相談する</button>`); }
+    else A.push(btn('thread','記録を確認する','btn sec'));
+  } else if(r.state===ST.REVIEW){
+    A.push(`<div class="notice bad">双方の報告が一致しないため、大学の担当者が確認しています。集計からは分けて扱います。</div>`);
+  } else {
+    A.push(`<div class="notice info"><span>終了理由：${esc(r.endReason||'—')}</span></div>`);
+    if(s==='student'&&canRequest(r.alumniId).ok) A.push(`<button class="btn sec" data-act="go" data-to="request" data-id="${r.alumniId}">新しく依頼する</button>`);
+  }
+  let info='';
+  if(r.state===ST.SENT) info=`<div class="notice ${s==='alumni'?'lumi':'info'}"><span>回答期限 <b>${fDT(r.expiresAt)}</b>（日本時間）。${s==='alumni'?'期限を過ぎると自動で期限切れになります。':'期限までに返事がない場合は期限切れになります。'}</span></div>`;
+  if((r.state===ST.SCHED||r.state===ST.ACC)&&p) info=`<div class="notice ${r.state===ST.SCHED?'ok':'warn'}"><span>${r.state===ST.SCHED?'確定した日程':'提案中の日程'}：<b>${fDT(p.startAt)}〜</b>（日本時間・${p.duration}分・${esc(p.method)}）${r.state===ST.ACC?' ／ 双方の同意で確定します':''}</span></div>`;
+  return `<button class="back" data-act="nav" data-to="requests">← 相談一覧へ</button>`+head('S05','依頼詳細')+
+  `<div class="grid2"><section class="panel stack">
+    <div class="row" style="justify-content:space-between"><h2>${esc(name)} さん${s==='alumni'?`<span class="small muted">（${esc(o.faculty)} ${esc(o.year)}）</span>`:''}</h2>${pill(r.state)}</div>
+    ${TRACK.includes(r.state)?track:''}
+    <dl class="kv"><dt>依頼ID</dt><dd class="mono">${r.id}${r.prevId?` <span class="muted">← 前回 ${r.prevId}</span>`:''}</dd><dt>相談テーマ</dt><dd>${esc(r.theme)}</dd><dt>送信日時</dt><dd>${fDT(r.sentAt)}</dd><dt>希望</dt><dd>${esc(r.pref||'指定なし')}</dd></dl>
+    <div><div class="sec-title">聞きたいこと</div><div class="quote">${esc(r.question)}</div></div>
+  </section>
+  <aside class="stack"><div class="panel stack"><div class="sec-title">次にできること</div>${info}${A.join('')}</div>
+   ${OPEN.includes(r.state)?`<div class="panel flat"><button class="btn danger sm" data-act="report" data-id="${r.id}" data-target="${esc(name)}（${r.id}）">通報・連絡を遮断</button></div>`:''}</aside></div>`;
+};
+const isParty=r=>(S.role==='student'&&r.studentId===S.me.student)||(S.role==='alumni'&&r.alumniId===S.me.alumni);
+
+/* S06 メッセージと日程 */
+views.thread=({id})=>{
+  const r=req(id); if(!r||!isParty(r)) return denied();
+  if(r.state===ST.SENT) return denied();
+  const s=side(), os=s==='student'?'alumni':'student', p=cur(r), o=other(r);
+  const name=s==='student'?S.profiles[r.alumniId].display:o.name;
+  const live=[ST.ACC,ST.SCHED,ST.REP].includes(r.state)&&!r.blocked;
+  let sched='';
+  if(p){
+    const conf=r.state!==ST.ACC;
+    sched=`<div class="sched ${conf?'confirmed':''}"><div class="row" style="justify-content:space-between"><div class="sec-title" style="margin:0">日程 <span class="mono">版${p.v}</span></div>${conf?'<span class="pill p-ok">日程確定</span>':'<span class="pill p-warn">同意待ち</span>'}</div>
+      <p style="font-size:1.08rem;font-weight:700;margin-top:6px">${fDT(p.startAt)}〜${fT(p.startAt+p.duration*60e3)} <span class="small muted">日本時間</span></p>
+      <p class="small muted">${esc(p.method)}・${p.duration}分 ・ 提案：${p.by===s?'あなた':esc(name)+' さん'}</p>
+      <div class="agree" style="margin-top:6px"><span class="${p.agreed[s]?'y':'n'}">${p.agreed[s]?'✓ あなたは同意済み':'○ あなたは未同意'}</span><span class="${p.agreed[os]?'y':'n'}">${p.agreed[os]?'✓ 相手は同意済み':'○ 相手は未同意'}</span></div>
+      ${r.needsReconfirm&&r.state===ST.ACC?'<p class="errmsg" style="margin-top:4px">日程が変更されたため、再確認が必要です。</p>':''}
+      ${live&&r.state===ST.ACC&&!p.agreed[s]&&p.startAt>S.now?`<div class="row" style="margin-top:10px"><button class="btn" data-act="agree" data-id="${r.id}">この日程に同意</button></div>`:''}
+      ${live&&r.state===ST.ACC&&p.startAt<=S.now?'<p class="errmsg">提案時刻を過ぎています。新しい候補を提案してください。</p>':''}
+    </div>`;
+  } else sched=`<div class="sched"><div class="sec-title">日程</div><p class="muted small">まだ候補日時がありません。都合のよい日時を提案してください。</p></div>`;
+  const propose=live&&r.state!==ST.REP?`<details class="panel" ${!p?'open':''}><summary style="cursor:pointer;font-weight:700">${p?'別の候補を提案する':'候補を提案する'}</summary>
+    <form class="stack" data-form="propose" data-id="${r.id}" style="margin-top:12px" novalidate>
+      <div class="field"><label for="p-at">開始日時（日本時間）<span class="req">必須</span></label><input type="datetime-local" id="p-at" name="at" min="${jstLocal(S.now)}" value="${jstLocal(S.now-((S.now+9*HOUR)%DAY)+3*DAY+19*HOUR)}"></div>
+      <div class="row" style="align-items:flex-start"><div class="field" style="flex:1;min-width:140px"><label for="p-m">方法</label><select id="p-m" name="method"><option>オンライン</option><option>対面</option><option>その他</option></select></div>
+      <div class="field" style="flex:1;min-width:120px"><label for="p-d">時間</label><select id="p-d" name="dur"><option value="30">30分</option><option value="45">45分</option><option value="60">60分</option></select></div></div>
+      ${r.state===ST.SCHED?'<p class="hint">確定済みの日程を変えると、いまの合意は解除され、双方の再確認が必要になります。</p>':''}
+      <p class="errmsg" id="p-err" hidden></p>
+      <div><button class="btn sec" type="submit">候補を提案</button></div></form></details>`:'';
+  const canReport=(r.state===ST.SCHED||r.state===ST.REP)&&p&&!r.reports[s];
+  const reportBox=[ST.SCHED,ST.REP].includes(r.state)?`<div class="panel stack"><div class="sec-title">実施の報告</div>
+    ${canReport&&S.now>=p.startAt?`<p class="small">対話が終わったら報告してください。双方が確認すると完了になります。</p><div class="row"><button class="btn" data-act="report-done" data-id="${r.id}">実施を報告</button>${r.state===ST.REP?`<button class="btn danger" data-act="not-done" data-id="${r.id}">実施していない</button>`:''}</div>`
+     :canReport?`<p class="hint">開始時刻（${fDT(p.startAt)}）を過ぎると報告できます。</p><button class="btn" disabled>実施を報告</button>`
+     :`<p class="small">あなたは報告済みです。相手の確認を待っています。</p>`}
+    <p class="hint">報告状況：あなた ${r.reports[s]?'✓':'—'} ／ 相手 ${r.reports[os]?'✓':'—'}</p></div>`:'';
+  const msgs=r.messages.map(m=>m.by==='system'?`<div class="msg sys">${esc(m.text)}<span class="when">${fDT(m.at)}</span></div>`:`<div class="msg ${m.by===s?'mine':''}">${esc(m.text)}<span class="when">${m.by===s?'あなた':esc(m.by==='student'?S.users[r.studentId].name:S.profiles[r.alumniId].display)} ・ ${fDT(m.at)}</span></div>`).join('')||'<p class="hint" style="text-align:center">まだメッセージはありません。</p>';
+  return `<button class="back" data-act="go" data-to="detail" data-id="${r.id}">← 依頼詳細へ</button>`+head('S06','メッセージと日程')+
+  `<div class="row" style="justify-content:space-between;margin-bottom:14px"><span><b>${esc(name)}</b> さん ・ ${esc(r.theme)} <span class="mono small muted">${r.id}</span></span>${pill(r.state)}</div>
+  ${r.blocked?'<div class="notice bad" style="margin-bottom:14px">連絡を遮断しました。新しいメッセージと依頼は届きません。困っていることは大学の窓口（キャリアセンター）へご相談ください。</div>':''}
+  ${!live&&!r.blocked?'<div class="notice info" style="margin-bottom:14px">この相談は終了しています。履歴の閲覧のみできます。</div>':''}
+  <div class="grid2"><section class="panel stack" aria-label="メッセージ"><div class="msgs" id="msgs">${msgs}</div>
+    ${live?`<form class="stack" data-form="msg" data-id="${r.id}" novalidate><div class="field"><label for="m-body" class="lbl">メッセージ</label><textarea id="m-body" name="body" style="min-height:80px" data-count="2000" placeholder="連絡先や個人情報は書かないでください"></textarea><div class="count" data-counter="m-body">0 / 2000</div><span class="errmsg" id="m-err" hidden></span></div><div><button class="btn" type="submit">送信</button></div></form>`:''}
+  </section>
+  <aside class="stack">${sched}${propose}${reportBox}
+    ${live?`<div class="panel flat"><button class="btn danger sm" data-act="report" data-id="${r.id}" data-target="${esc(name)}（${r.id}）">通報・連絡を遮断</button></div>`:''}</aside></div>`;
+};
+
+/* S07 振り返り */
+views.reflect=({id})=>{
+  const r=req(id); if(!r||S.role!=='student'||r.studentId!==S.me.student) return denied();
+  if(r.state!==ST.DONE) return `<button class="back" data-act="go" data-to="detail" data-id="${r.id}">← 依頼詳細へ</button>`+head('S07','振り返りと次の行動')+`<div class="notice info">振り返りは、双方が実施を確認して相談が完了してから書けます。</div>`;
+  const p=cur(r), f=r.reflection, e=views.reflect.err||{};
+  const followAt=r.completedAt+14*DAY;
+  const name=S.profiles[r.alumniId].display;
+  let follow='';
+  if(f){
+    if(f.follow) follow=`<div class="notice ok"><span><b>14日後の確認：${esc(f.follow.result)}</b>${f.follow.note?` ／ ${esc(f.follow.note)}`:''}（${fD(f.follow.at)} 記録）</span></div>`;
+    else if(S.now>=followAt) follow=`<form class="panel stack" data-form="follow" data-id="${r.id}" novalidate><div class="sec-title">14日後の確認</div><p>「${esc(f.next)}」は実行できましたか。</p>
+      <div class="checks" role="radiogroup" aria-label="実行状況">${['実行した','まだ','変更した'].map(v=>`<label><input type="radio" name="result" value="${v}"> ${v}</label>`).join('')}</div>
+      <div class="field"><label for="fl-note">理由・具体的にしたこと<span class="opt">任意</span></label><input type="text" id="fl-note" name="note" maxlength="200"></div><p class="errmsg" id="fl-err" hidden></p><div><button class="btn" type="submit">記録する</button></div></form>`;
+    else follow=`<div class="panel flat small muted">14日後の確認は <b>${fD(followAt)}</b> から記録できます。実証の担当者からも案内があります。</div>`;
+  }
+  return `<button class="back" data-act="go" data-to="detail" data-id="${r.id}">← 依頼詳細へ</button>`+head('S07','振り返りと次の行動','話して分かったことと、次に調べること・試すことを残しておきましょう。記録はあなただけが見られます。')+
+  `<div class="grid2"><form class="panel stack" data-form="reflect" data-id="${r.id}" novalidate>
+     <p class="small muted">${esc(name)} さん ・ ${esc(r.theme)} ・ 実施 ${p?fD(p.startAt):'—'}</p>
+     <div class="field ${e.learned?'err':''}"><label for="rf-l">学んだこと<span class="req">必須</span></label><textarea id="rf-l" name="learned" data-count="500" placeholder="例：大学院に行くかは、研究テーマが決まっているかで判断した人が多いと分かった">${esc(f?.learned||'')}</textarea><div class="count" data-counter="rf-l">${len(f?.learned)} / 500</div>${e.learned?`<span class="errmsg">${e.learned}</span>`:''}</div>
+     <div class="field ${e.next?'err':''}"><label for="rf-n">次に行うこと<span class="req">必須</span></label><textarea id="rf-n" name="next" style="min-height:80px" data-count="500" placeholder="例：研究室の説明会に1つ参加して、先輩に進路を聞く">${esc(f?.next||'')}</textarea><div class="count" data-counter="rf-n">${len(f?.next)} / 500</div>${e.next?`<span class="errmsg">${e.next}</span>`:''}</div>
+     <div class="field ${e.due?'err':''}"><label for="rf-d">実行予定日<span class="req">必須</span></label><input type="date" id="rf-d" name="due" min="${jstDate(S.now)}" value="${esc(f?.due||'')}">${e.due?`<span class="errmsg">${e.due}</span>`:''}</div>
+     <div class="row"><button class="btn" type="submit">保存</button>${f?`<span class="small" style="color:var(--ok)">✓ 保存済み（${fDT(f.savedAt)}）</span>`:''}</div>
+  </form>
+  <aside class="stack">${follow}
+    <div class="panel stack"><div class="sec-title">もう一度相談する</div><p class="small">同じ先輩に続きを聞くときは、新しい依頼として送ります。前回の相談とつながって表示されます。</p>
+      ${canRequest(r.alumniId).ok?`<button class="btn sec" data-act="go" data-to="request" data-id="${r.alumniId}" data-prev="${r.id}">もう一度相談する</button>`:`<p class="hint">${esc(canRequest(r.alumniId).reason)}</p>`}</div></aside></div>`;
+};
+
+/* S08 / 学生設定 */
+views.settings=()=>{
+  if(S.role==='student'){ const u=me(); return head('—','自分の設定')+`<section class="panel"><dl class="kv"><dt>氏名</dt><dd>${esc(u.name)}</dd><dt>所属</dt><dd>EMC大学 ${esc(u.faculty)} ${esc(u.year)}</dd><dt>メール</dt><dd class="mono">${esc(u.email)}<span class="hint">（他の利用者には公開されません）</span></dd><dt>参加確認</dt><dd><span class="pill p-ok">${esc(u.status)}</span></dd></dl>
+  <hr class="div"><p class="small muted">退会やデータ削除の申請、困りごとの相談は大学の窓口（キャリアセンター）で受け付けます。</p></section>`; }
+  const id=S.me.alumni, p=S.profiles[id], e=views.settings.err||{}, ac=activeCount(id);
+  return head('S08','プロフィールと受付設定','学生に公開される内容と、相談を受け付ける量を自分で決められます。')+
+  `<div class="grid2"><form class="panel stack" data-form="profile" novalidate>
+    <div class="field ${e.display?'err':''}"><label for="pf-n">表示名<span class="req">必須</span></label><input type="text" id="pf-n" name="display" maxlength="40" value="${esc(p.display)}">${e.display?`<span class="errmsg">${e.display}</span>`:''}</div>
+    <div class="row" style="align-items:flex-start"><div class="field" style="flex:1;min-width:150px"><label for="pf-f">学部</label><select id="pf-f" name="faculty">${FACULTIES.map(f=>`<option ${p.faculty===f?'selected':''}>${f}</option>`).join('')}</select></div>
+    <div class="field" style="flex:1;min-width:110px"><label for="pf-g">卒業年</label><input type="number" id="pf-g" name="grad" min="1960" max="2026" value="${esc(p.grad)}"></div></div>
+    <div class="row" style="align-items:flex-start"><div class="field" style="flex:1;min-width:150px"><label for="pf-i">業界</label><select id="pf-i" name="industry">${INDUSTRIES.map(f=>`<option ${p.industry===f?'selected':''}>${f}</option>`).join('')}</select></div>
+    <div class="field ${e.job?'err':''}" style="flex:2;min-width:180px"><label for="pf-j">職種<span class="req">必須</span></label><input type="text" id="pf-j" name="job" maxlength="40" value="${esc(p.job)}">${e.job?`<span class="errmsg">${e.job}</span>`:''}</div></div>
+    <fieldset class="field ${e.themes?'err':''}" style="border:0;padding:0;margin:0"><legend class="lbl" style="font-weight:700;font-size:.9rem;margin-bottom:5px">話せるテーマ<span class="req">1〜5件</span></legend><div class="checks">${THEMES.map(t=>`<label><input type="checkbox" name="themes" value="${t}" ${p.themes.includes(t)?'checked':''}> ${t}</label>`).join('')}</div>${e.themes?`<span class="errmsg">${e.themes}</span>`:''}</fieldset>
+    <div class="field ${e.intro?'err':''}"><label for="pf-intro">自己紹介<span class="req">必須</span></label><textarea id="pf-intro" name="intro" data-count="500">${esc(p.intro)}</textarea><div class="count" data-counter="pf-intro">${len(p.intro)} / 500</div>${e.intro?`<span class="errmsg">${e.intro}</span>`:''}</div>
+    <hr class="div">
+    <div class="field"><span class="lbl">公開</span><div class="checks"><label><input type="radio" name="public" value="1" ${p.public?'checked':''}> 公開する</label><label><input type="radio" name="public" value="0" ${!p.public?'checked':''}> 非公開</label></div></div>
+    <div class="field"><span class="lbl">受付</span><div class="checks"><label><input type="radio" name="open" value="1" ${p.open?'checked':''}> 受付中</label><label><input type="radio" name="open" value="0" ${!p.open?'checked':''}> 休止</label></div><span class="hint">休止しても、進行中の相談はそのまま続きます。</span></div>
+    <div class="field ${e.limit?'err':''}"><label for="pf-l">同時に受け付ける相談の上限</label><input type="number" id="pf-l" name="limit" min="1" max="10" value="${p.limit}" style="max-width:120px"><span class="hint">1〜10件。いま進行中：<span class="mono">${ac}</span> 件（送信済み・承諾済み・日程確定・実施報告済みの合計）</span>${e.limit?`<span class="errmsg">${e.limit}</span>`:''}</div>
+    <div><button class="btn" type="submit">保存</button></div>
+  </form>
+  <aside class="stack"><div class="sec-title">学生に見える表示</div><div class="preview">${(()=>{const a=availability(id);return `<article class="card"><div class="who"><div class="avatar" aria-hidden="true">${esc(ini(p.display))}</div><div><div class="name">${esc(p.display)}</div><div class="verified">所属確認済み</div></div></div><div class="meta">${esc(p.faculty)} ${esc(p.grad)}年卒 ／ ${esc(p.industry)}・${esc(p.job)}</div><div class="chips">${p.themes.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div><div class="foot"><span class="pill ${a.cls}">${a.label}</span></div></article>`})()}</div>
+  ${!p.public?'<div class="notice warn">非公開のため、学生の検索結果には表示されません。</div>':''}
+  ${p.public&&ac>=p.limit?'<div class="notice warn">上限に達しているため、新しい依頼は届きません。進行中の相談は続けられます。</div>':''}</aside></div>`;
+};
+
+/* S09 大学管理 */
+views.admin=()=>{
+  const t=S.adminTab;
+  const tabs=[['verify','参加確認',S.pending.length],['cases','通報対応',S.reports.filter(c=>c.status!=='対応済み').length],['stats','運営集計'],['audit','操作履歴']];
+  let body='';
+  if(t==='verify'){
+    const users=Object.values(S.users);
+    body=`<div class="stack"><div><div class="sec-title">確認待ち</div>${S.pending.length?`<div class="stack">${S.pending.map(p=>`<div class="panel stack"><div class="row" style="justify-content:space-between"><b>${esc(p.name)}</b><span class="pill p-info">${esc(p.role)}</span></div>
+      <dl class="kv"><dt>所属申告</dt><dd>${esc(p.faculty)}</dd><dt>メール</dt><dd class="mono">${esc(p.email)}</dd><dt>確認根拠</dt><dd>${esc(p.evidence)}</dd><dt>申請日</dt><dd>${fD(p.at)}</dd></dl>
+      <div class="row"><button class="btn sm" data-act="approve" data-id="${p.id}">承認</button><button class="btn sec sm" data-act="sendback" data-id="${p.id}">差戻し</button><button class="btn danger sm" data-act="reject" data-id="${p.id}">停止</button></div></div>`).join('')}</div>`:'<div class="panel empty"><b>確認待ちの申請はありません</b></div>'}</div>
+     <div><div class="sec-title">参加者</div><div class="tablewrap"><table><thead><tr><th>氏名</th><th>区分</th><th>所属</th><th>状態</th><th></th></tr></thead><tbody>
+      ${users.map(u=>`<tr><td>${esc(u.name)}</td><td>${u.role==='student'?'学生':'卒業生'}</td><td>${u.role==='student'?esc(u.faculty+' '+u.year):esc(S.profiles[u.id]?.faculty+' '+S.profiles[u.id]?.grad+'年卒')}</td><td>${u.status==='確認済み'?'<span class="pill p-ok">確認済み</span>':'<span class="pill p-bad">'+esc(u.status)+'</span>'}</td><td>${u.status==='確認済み'?`<button class="btn danger sm" data-act="suspend" data-id="${u.id}">利用停止</button>`:`<button class="btn sec sm" data-act="restore" data-id="${u.id}">停止を解除</button>`}</td></tr>`).join('')}</tbody></table></div></div></div>`;
+  } else if(t==='cases'){
+    body=S.reports.length?`<div class="stack">${S.reports.map(c=>`<div class="panel stack"><div class="row" style="justify-content:space-between"><b class="mono">${c.id}</b><span class="pill ${c.status==='対応済み'?'p-ok':c.status==='対応中'?'p-warn':'p-bad'}">${esc(c.status)}</span></div>
+      <dl class="kv"><dt>対象</dt><dd>${esc(c.target)}</dd><dt>通報者</dt><dd>${esc(c.by)}</dd><dt>理由</dt><dd>${esc(c.reason)}</dd><dt>補足</dt><dd>${esc(c.detail||'—')}</dd>${c.blocked?'<dt>遮断</dt><dd>通報者が連絡を遮断済み</dd>':''}</dl>
+      <div><div class="sec-title">対応履歴</div><ul class="small" style="margin:0;padding-left:1.2em">${c.log.map(l=>`<li>${fDT(l.at)} ${esc(l.text)}</li>`).join('')}</ul></div>
+      ${c.status!=='対応済み'?`<div class="row">${c.status==='未対応'?`<button class="btn sm" data-act="case-start" data-id="${c.id}">対応を開始</button>`:''}<button class="btn sec sm" data-act="case-close" data-id="${c.id}">対応済みにする</button></div>`:''}</div>`).join('')}</div>`:'<div class="panel empty"><b>通報はありません</b></div>';
+  } else if(t==='stats'){
+    const students=Object.values(S.users).filter(u=>u.role==='student'&&u.status==='確認済み');
+    const alumni=Object.values(S.users).filter(u=>u.role==='alumni'&&u.status==='確認済み');
+    const R=S.requests, decided=R.filter(r=>r.state!==ST.SENT||S.now-r.sentAt>=7*DAY), pendingR=R.length-decided.length;
+    const acc7=decided.filter(r=>r.acceptedAt&&r.acceptedAt-r.sentAt<=7*DAY).length;
+    const sentStu=new Set(R.map(r=>r.studentId)).size, doneStu=new Set(R.filter(r=>r.state===ST.DONE).map(r=>r.studentId)).size;
+    const doneR=R.filter(r=>r.state===ST.DONE), refl=doneR.filter(r=>r.reflection).length, review=R.filter(r=>r.state===ST.REVIEW).length;
+    const slots=Object.entries(S.profiles).filter(([id,p])=>p.public&&p.open).reduce((s,[,p])=>s+p.limit,0);
+    const iv=S.interventions, ivMin=iv.reduce((s,x)=>s+x.min,0);
+    const stat=(k,n,d,unit,desc,target)=>`<div class="stat"><div class="k">${k}</div><div class="v">${n}<small> / ${d}${unit}</small></div><div class="d">${d?pct(n,d):'算出不可'}${target?` ・ 目安 ${target}`:''}</div><div class="bar"><i style="width:${d?Math.min(100,n/d*100):0}%"></i></div>${desc?`<div class="d">${desc}</div>`:''}</div>`;
+    body=`<div class="stack"><p class="small muted">期間：実証期間全体（〜${fD(S.now)}）。少人数の属性別内訳は表示しません。割合は実人数・分母と併記しています。</p>
+    <div class="stats">
+      <div class="stat"><div class="k">確認済みの参加者</div><div class="v">${students.length}<small> 学生</small> ${alumni.length}<small> 卒業生</small></div><div class="d">受付中の対応枠 合計 ${slots} 枠</div></div>
+      ${stat('自分で依頼した学生',sentStu,students.length,'人','分母：確認済み学生','60％')}
+      ${stat('7日以内に承諾された依頼',acc7,decided.length,'件',`分母：判定済みの送信依頼（取消・期限切れを含む）。7日未満の ${pendingR} 件は未確定`,'60％')}
+      ${stat('対話が完了した学生',doneStu,students.length,'人','双方の実施確認で完了。片側報告は別集計','50％')}
+      ${stat('振り返りを記録した完了相談',refl,doneR.length,'件','分母：完了した相談','80％')}
+      <div class="stat"><div class="k">運営確認中</div><div class="v">${review}<small> 件</small></div><div class="d">報告が一致しない相談。完了数から除外</div></div>
+      <div class="stat"><div class="k">大学担当者の介入</div><div class="v">${iv.length}<small> 回</small> ${ivMin}<small> 分</small></div><div class="d">自発的な利用とは分けて記録</div></div>
+    </div>
+    <div><div class="sec-title">介入の記録</div><div class="tablewrap"><table><thead><tr><th>日付</th><th>依頼ID</th><th>内容</th><th>時間</th></tr></thead><tbody>${iv.map(x=>`<tr><td>${fD(x.at)}</td><td class="mono">${esc(x.req)}</td><td>${esc(x.kind)}</td><td class="mono">${x.min}分</td></tr>`).join('')}</tbody></table></div></div>
+    <form class="panel row" data-form="interv" style="align-items:flex-end" novalidate>
+      <div class="field" style="flex:1;min-width:130px"><label for="iv-r">依頼ID<span class="opt">任意</span></label><input type="text" id="iv-r" name="req" placeholder="R-0105"></div>
+      <div class="field" style="flex:2;min-width:180px"><label for="iv-k">内容</label><select id="iv-k" name="kind"><option>日程未決時の案内</option><option>相談の実施確認</option><option>所属確認</option><option>卒業生募集の連絡</option><option>問い合わせ対応</option></select></div>
+      <div class="field" style="width:110px"><label for="iv-m">時間（分）</label><input type="number" id="iv-m" name="min" min="1" max="600" value="10"></div>
+      <button class="btn sec" type="submit">介入を記録</button></form></div>`;
+  } else {
+    body=`<div class="tablewrap"><table><thead><tr><th>日時</th><th>担当者</th><th>操作</th><th>対象</th><th>理由</th></tr></thead><tbody>${S.audit.map(a=>`<tr><td class="mono">${fDT(a.at)}</td><td>${esc(a.who)}</td><td>${esc(a.act)}</td><td>${esc(a.target)}</td><td>${esc(a.reason||'—')}</td></tr>`).join('')}</tbody></table></div><p class="hint" style="margin-top:8px">個別のメッセージや振り返りは、この画面には表示しません。集計のダウンロードは匿名データのみです。</p>`;
+  }
+  return head('S09','大学管理','EMC大学の参加者と運営状況だけを扱います。')+
+   `<div class="subtabs" role="tablist">${tabs.map(([k,l,n])=>`<button role="tab" class="fchip" aria-selected="${t===k}" aria-pressed="${t===k}" data-act="atab" data-t="${k}">${l}${n?` <span class="badge-n">${n}</span>`:''}</button>`).join('')}</div>`+body;
+};
+
+/* S01 登録と参加確認 */
+views.register=()=>{
+  const g=S.guest, e=g.error||{};
+  const steps=`<div class="steps"><span class="${g.step==='form'?'on':''}">1 情報を入力</span><span class="${g.step==='mail'||g.step==='expired'?'on':''}">2 メールを確認</span><span class="${['review','back','done','stopped'].includes(g.step)?'on':''}">3 大学が所属を確認</span></div>`;
+  const pend=g.pendingId&&S.pending.find(p=>p.id===g.pendingId);
+  if(g.step==='review'&&!pend&&g.result) g.step=g.result;
+  let b='';
+  if(g.step==='form'||g.step==='back') b=`${g.step==='back'?`<div class="notice warn" style="margin-bottom:14px"><span><b>大学から修正のお願いがあります：</b>${esc(g.backReason)}</span></div>`:''}<form class="panel stack" data-form="register" novalidate style="max-width:560px">
+    <div class="field"><label for="g-u">大学</label><select id="g-u" name="uni"><option>EMC大学</option></select></div>
+    <div class="field"><span class="lbl">参加区分</span><div class="checks"><label><input type="radio" name="kind" value="学生" ${g.kind==='学生'?'checked':''}> 学生</label><label><input type="radio" name="kind" value="卒業生" ${g.kind==='卒業生'?'checked':''}> 卒業生</label></div></div>
+    <div class="field ${e.name?'err':''}"><label for="g-n">氏名<span class="req">必須</span></label><input type="text" id="g-n" name="name" maxlength="40" value="${esc(g.name)}" autocomplete="name">${e.name?`<span class="errmsg">${e.name}</span>`:''}</div>
+    <div class="field ${e.email?'err':''}"><label for="g-e">メールアドレス<span class="req">必須</span></label><span class="hint">学生は大学のメールアドレスを使ってください。</span><input type="email" id="g-e" name="email" value="${esc(g.email)}" autocomplete="email">${e.email?`<span class="errmsg">${e.email}</span>`:''}</div>
+    <div class="field ${e.extra?'err':''}"><label for="g-x">所属確認に使う情報<span class="req">必須</span></label><span class="hint">学生：学部と学籍番号 ／ 卒業生：卒業年と学部</span><input type="text" id="g-x" name="extra" value="${esc(g.extra)}" placeholder="例：法学部 22L0417">${e.extra?`<span class="errmsg">${e.extra}</span>`:''}</div>
+    <div class="field ${e.agree?'err':''}"><label class="row" style="gap:8px;font-weight:400"><input type="checkbox" name="agree" ${g.agree?'checked':''}> <span><a href="#terms" data-act="noop">利用規約</a>と<a href="#privacy" data-act="noop">個人情報の取り扱い</a>を読み、同意します</span></label>${e.agree?`<span class="errmsg">${e.agree}</span>`:''}</div>
+    <div><button class="btn" type="submit">確認メールを送る</button></div><p class="hint">すでに登録済みのメールアドレスの場合は、ログインのご案内を送ります。</p></form>`;
+  else if(g.step==='mail') b=`<div class="panel stack" style="max-width:560px"><h2>確認メールを送りました</h2><p><span class="mono">${esc(g.email)}</span> に届いたリンクを開いてください。リンクの有効期限は24時間です。</p>
+    <div class="row"><button class="btn" data-act="g-open">メール内のリンクを開く（デモ）</button><button class="btn ghost" data-act="g-expire">期限切れのリンクを試す（デモ）</button></div></div>`;
+  else if(g.step==='expired') b=`<div class="panel stack" style="max-width:560px"><div class="notice warn">このリンクは有効期限が切れています。</div><button class="btn" style="align-self:flex-start" data-act="g-resend">確認メールを再送する</button></div>`;
+  else if(g.step==='review') b=`<div class="panel stack" style="max-width:560px"><span class="pill p-warn" style="align-self:flex-start">大学が確認中</span><h2>メールアドレスを確認しました</h2><p>いま EMC大学が所属を確認しています。確認が終わるまで、先輩の検索や依頼はできません。結果はアプリ内でお知らせします。</p>
+    <p class="hint">デモ：視点を「大学管理者」に切り替えると、この申請を承認・差戻しできます。</p></div>`;
+  else if(g.step==='done') b=`<div class="panel stack" style="max-width:560px"><span class="pill p-ok" style="align-self:flex-start">確認済み</span><h2>参加確認が完了しました</h2><p>EMC大学が所属を確認しました。先輩を探して、相談を依頼できます。</p><p class="hint">デモでは、続きは「学生：田中 ゆい」の視点で操作できます。</p><button class="btn" style="align-self:flex-start" data-act="g-continue">学生の視点で続ける</button></div>`;
+  else if(g.step==='stopped') b=`<div class="panel stack" style="max-width:560px"><span class="pill p-bad" style="align-self:flex-start">利用できません</span><p>大学の確認により、今回は参加できませんでした。理由：${esc(g.stopReason||'—')}</p><p class="small muted">ご不明な点は大学の窓口（キャリアセンター）へお問い合わせください。</p></div>`;
+  return head('S01','登録と参加確認','LumiLinkは、EMC大学が参加を確認した学生と卒業生だけが使えます。')+steps+b+
+   (g.step!=='form'?`<p style="margin-top:14px"><button class="linkbtn" data-act="g-restart">最初から試す</button></p>`:'');
+};
+
+/* ---------- events ---------- */
+const act={
+  home:()=>go(S.role==='admin'?'admin':S.role==='guest'?'register':S.role==='alumni'?'requests':'search'),
+  nav:d=>go(d.to),
+  go:d=>{ if(d.to==='request') draft=null; go(d.to,{id:d.id,...(d.prev?{prev:d.prev}:{})}); },
+  noop:()=>{},
+  time:d=>{ S.now+=Number(d.h)*HOUR; sweep(); save(); render(); toast(`時刻を進めました：${fDT(S.now)}`); },
+  reset:()=>modal({title:'初期状態に戻しますか',body:'<p>デモで操作した内容をすべて消し、サンプルデータに戻します。</p>',ok:'初期状態に戻す',danger:true,onOk:()=>{ S=seed(); draft=null; save(); render(); toast('初期状態に戻しました'); }}),
+  filter:d=>{ const a=S.filters[d.k]; const i=a.indexOf(d.v); i<0?a.push(d.v):a.splice(i,1); runSearch(); },
+  clear:()=>{ S.filters={ind:[],fac:[],theme:[],openOnly:false}; runSearch(); },
+  reload:()=>runSearch(),
+  'draft-back':()=>{ draft.step='edit'; draft.error=''; render(); },
+  send:()=>{
+    if(draft.sending) return;
+    const dup=S.requests.find(r=>r.sendKey===draft.key);
+    if(dup){ draft=null; go('detail',{id:dup.id}); return; }
+    draft.sending=true; draft.error=''; render();
+    setTimeout(()=>{
+      draft.sending=false;
+      if(S.failNet){ draft.error='通信できなかったため送信できませんでした。入力内容は残っています。通信状態を確認して、もう一度送信してください。'; render(); return; }
+      const c=canRequest(draft.alumniId);
+      if(!c.ok){ draft.error=c.reason; render(); return; }
+      const id=nextId('R');
+      const r={id,studentId:S.me.student,alumniId:draft.alumniId,theme:draft.theme,question:draft.question.trim(),pref:draft.pref.trim(),state:ST.SENT,sentAt:S.now,expiresAt:S.now+7*DAY,updatedAt:S.now,prevId:draft.prevId,messages:[],proposals:[],reports:{student:false,alumni:false},reflection:null,sendKey:draft.key};
+      S.requests.push(r); draft=null; save(); go('detail',{id}); toast(`送信しました。回答期限は${fD(r.expiresAt)}です`);
+    },700);
+  },
+  accept:d=>{ const r=req(d.id); if(r.state!==ST.SENT||S.now>r.expiresAt){ sweep(); render(); toast('この依頼はすでに状態が変わっています。最新の状態を表示しました'); return; }
+    r.state=ST.ACC; r.acceptedAt=S.now; r.updatedAt=S.now; sysMsg(r,'卒業生が依頼を承諾しました。日程を相談しましょう。'); save(); go('thread',{id:r.id}); toast('承諾しました。日程の候補を提案してください'); },
+  decline:d=>modal({title:'この依頼を辞退しますか',danger:true,ok:'辞退する',body:`<p class="small">学生には辞退したことと、選んだ理由（任意）だけが伝わります。</p><div class="field"><label for="md-r">理由<span class="opt">任意</span></label><select id="md-r" name="reason"><option value="">選ばない</option>${DECLINE_REASONS.map(x=>`<option>${x}</option>`).join('')}</select></div>`,
+    onOk:f=>{ const r=req(d.id); if(r.state!==ST.SENT) return '状態が変わっているため辞退できません。'; r.state=ST.DECL; r.endReason=f.get('reason')||'理由の選択なし'; r.endBy='alumni'; r.updatedAt=S.now; save(); render(); toast('辞退しました'); }}),
+  cancel:d=>{ const r=req(d.id); const after=r.state!==ST.SENT;
+    modal({title:after?'相談を取り消しますか':'依頼を取り消しますか',danger:true,ok:'取り消す',body:`<p class="small">${after?'相手に取消と理由が通知されます。取り消した相談は再開できません。':'送信した依頼を取り消します。'}</p>${after?`<div class="field"><label for="mc-r">理由<span class="req">必須</span></label><textarea id="mc-r" name="reason" style="min-height:70px" maxlength="200"></textarea></div>`:''}`,
+    onOk:f=>{ const why=(f.get('reason')||'').trim(); if(after&&!why) return '取り消す理由を入力してください。'; if(!OPEN.includes(r.state)) return '状態が変わっているため取り消せません。';
+      r.state=ST.CANC; r.endReason=(side()==='student'?'学生':'卒業生')+'が取消'+(why?`：${why}`:''); r.endBy=side(); r.updatedAt=S.now; if(after) sysMsg(r,'相談が取り消されました。'+(why?`理由：${why}`:'')); save(); render(); toast('取り消しました'); }}); },
+  thread:d=>go('thread',{id:d.id}),
+  reflect:d=>{ views.reflect.err=null; go('reflect',{id:d.id}); },
+  agree:d=>{ const r=req(d.id), p=cur(r), s=side(); if(p.startAt<=S.now){ toast('提案時刻を過ぎています'); return; } p.agreed[s]=true; r.updatedAt=S.now;
+    if(p.agreed.student&&p.agreed.alumni){ r.state=ST.SCHED; r.needsReconfirm=false; sysMsg(r,`日程が確定しました：${fDT(p.startAt)}（日本時間）`); toast('日程が確定しました'); } else toast('同意しました'); save(); render(); },
+  'report-done':d=>{ const r=req(d.id), s=side(), p=cur(r);
+    if(!p||S.now<p.startAt){ toast('開始時刻を過ぎてから報告できます'); return; }
+    modal({title:'対話を実施しましたか',ok:'実施を報告',body:'<p class="small">双方が報告すると「完了」になります。</p>',onOk:()=>{ r.reports[s]=true; r.updatedAt=S.now;
+      if(r.reports.student&&r.reports.alumni){ r.state=ST.DONE; r.completedAt=S.now; sysMsg(r,'双方が実施を確認しました。相談は完了です。'); save(); if(s==='student'){ go('reflect',{id:r.id}); toast('完了しました。振り返りを残しましょう'); } else { render(); toast('完了しました'); } }
+      else { r.state=ST.REP; sysMsg(r,`${s==='student'?'学生':'卒業生'}が実施を報告しました。`); save(); render(); toast('報告しました。相手の確認を待っています'); } }}); },
+  'not-done':d=>modal({title:'実施していないと申告しますか',danger:true,ok:'申告する',body:'<p class="small">相手の報告と一致しないため、大学の担当者が確認します。</p>',onOk:()=>{ const r=req(d.id); r.state=ST.REVIEW; r.updatedAt=S.now; sysMsg(r,'実施状況の報告が一致しないため、運営確認中です。'); save(); render(); toast('申告しました。担当者が確認します'); }}),
+  report:d=>modal({title:'通報・連絡の遮断',ok:'送信',danger:true,body:`<p class="small">対象：${esc(d.target)}</p><div class="field"><label for="mr-r">理由<span class="req">必須</span></label><select id="mr-r" name="reason"><option value="">選んでください</option>${REPORT_REASONS.map(x=>`<option>${x}</option>`).join('')}</select></div><div class="field"><label for="mr-d">補足<span class="opt">任意</span></label><textarea id="mr-d" name="detail" style="min-height:70px" maxlength="500"></textarea></div>${d.id?'<label class="row" style="gap:8px"><input type="checkbox" name="block"> この相手との連絡を遮断する</label>':''}`,
+    onOk:f=>{ if(!f.get('reason')) return '理由を選んでください。'; const block=!!f.get('block'); const id='C-'+String(S.reports.length+1).padStart(3,'0');
+      S.reports.unshift({id,target:d.target,by:S.role==='student'?'学生':'卒業生',reason:f.get('reason'),detail:f.get('detail'),status:'未対応',blocked:block,at:S.now,log:[{at:S.now,text:'通報を受付'+(block?'（連絡を遮断）':'')}]});
+      if(block&&d.id){ const r=req(d.id); r.blocked=true; S.blocks.push({studentId:r.studentId,alumniId:r.alumniId}); }
+      save(); render(); toast(block?'通報し、連絡を遮断しました。大学の窓口が対応します':'通報しました。大学の窓口が対応します'); }}),
+  atab:d=>{ S.adminTab=d.t; save(); render(); },
+  approve:d=>{ const p=S.pending.find(x=>x.id===d.id); S.pending=S.pending.filter(x=>x.id!==d.id); log('承認',p.name,p.evidence); if(S.guest.pendingId===p.id) S.guest.result='done'; save(); render(); toast(`${p.name} さんを承認しました`); },
+  sendback:d=>modal({title:'差戻し',ok:'差し戻す',body:'<div class="field"><label for="sb-r">修正してほしい点<span class="req">必須</span></label><textarea id="sb-r" name="reason" style="min-height:70px"></textarea></div>',onOk:f=>{ const why=(f.get('reason')||'').trim(); if(!why) return '理由を入力してください。'; const p=S.pending.find(x=>x.id===d.id); S.pending=S.pending.filter(x=>x.id!==d.id); log('差戻し',p.name,why); if(S.guest.pendingId===p.id){ S.guest.result='back'; S.guest.backReason=why; } save(); render(); toast('差し戻しました'); }}),
+  reject:d=>modal({title:'参加を停止',danger:true,ok:'停止する',body:'<div class="field"><label for="rj-r">理由<span class="req">必須</span></label><textarea id="rj-r" name="reason" style="min-height:70px"></textarea></div>',onOk:f=>{ const why=(f.get('reason')||'').trim(); if(!why) return '理由を入力してください。'; const p=S.pending.find(x=>x.id===d.id); S.pending=S.pending.filter(x=>x.id!==d.id); log('停止',p.name,why); if(S.guest.pendingId===p.id){ S.guest.result='stopped'; S.guest.stopReason=why; } save(); render(); toast('停止しました'); }}),
+  suspend:d=>modal({title:'利用を停止しますか',danger:true,ok:'利用停止',body:'<p class="small">停止中は検索・新規依頼・メッセージができなくなります。問い合わせと削除申請の手段は残ります。</p><div class="field"><label for="sp-r">理由<span class="req">必須</span></label><textarea id="sp-r" name="reason" style="min-height:70px"></textarea></div>',onOk:f=>{ const why=(f.get('reason')||'').trim(); if(!why) return '理由を入力してください。'; const u=S.users[d.id]; u.status='停止中'; log('利用停止',u.name,why); save(); render(); toast(`${u.name} さんを停止しました`); }}),
+  restore:d=>{ const u=S.users[d.id]; u.status='確認済み'; log('停止解除',u.name,''); save(); render(); },
+  'case-start':d=>{ const c=S.reports.find(x=>x.id===d.id); c.status='対応中'; c.log.push({at:S.now,text:'担当者が対応を開始'}); log('通報対応開始',c.id,''); save(); render(); },
+  'case-close':d=>modal({title:'対応済みにする',ok:'対応済みにする',body:'<div class="field"><label for="cc-r">対応内容<span class="req">必須</span></label><textarea id="cc-r" name="note" style="min-height:70px"></textarea></div>',onOk:f=>{ const n=(f.get('note')||'').trim(); if(!n) return '対応内容を入力してください。'; const c=S.reports.find(x=>x.id===d.id); c.status='対応済み'; c.log.push({at:S.now,text:'対応済み：'+n}); log('通報対応完了',c.id,n); save(); render(); }}),
+  'g-open':()=>{ const g=S.guest; const id='P-'+String(S.seq++).padStart(2,'0'); S.pending.unshift({id,name:g.name,role:g.kind,faculty:g.extra,email:g.email,evidence:g.kind==='学生'?'大学メール到達確認済み・学籍情報を申告':'メール到達確認済み・卒業年と学部を申告（名簿照合待ち）',at:S.now}); g.pendingId=id; g.result=null; g.step='review'; S.adminTab='verify'; save(); render(); },
+  'g-expire':()=>{ S.guest.step='expired'; save(); render(); },
+  'g-resend':()=>{ S.guest.step='mail'; save(); render(); toast('確認メールを再送しました'); },
+  'g-restart':()=>{ S.pending=S.pending.filter(p=>p.id!==S.guest.pendingId); S.guest={step:'form',name:'',email:'',kind:'学生',extra:'',error:{},pendingId:null}; save(); render(); },
+  'g-continue':()=>{ S.role='student'; save(); go('search'); },
+  'modal-close':()=>closeModal(),
+  'modal-bg':(d,e)=>{ if(e.target.classList.contains('scrim')) closeModal(); }
+};
+
+function runSearch(){
+  searchStatus='loading'; save(); render();
+  setTimeout(()=>{ searchStatus=S.failNet?'error':'ok'; if(S.view.name==='search') render(); },380);
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act]'); if(!t) return;
+  const a=act[t.dataset.act]; if(!a) return;
+  if(t.tagName==='A') e.preventDefault();
+  a(t.dataset,e);
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&modalOk) closeModal(); });
+document.addEventListener('change',e=>{
+  const k=e.target.dataset.change; if(!k) return;
+  if(k==='role'){ S.role=e.target.value; draft=null; S.view={name:S.role==='alumni'?'requests':S.role==='admin'?'admin':S.role==='guest'?'register':'search',params:{}}; save(); render(); }
+  if(k==='fail'){ S.failNet=e.target.checked; save(); toast(S.failNet?'通信失敗を再現します（検索・依頼送信）':'通信は正常です'); }
+  if(k==='openonly'){ S.filters.openOnly=e.target.checked; runSearch(); }
+});
+document.addEventListener('input',e=>{
+  const el=e.target; if(el.dataset.count){ const c=document.querySelector(`[data-counter="${el.id}"]`); if(c){ const n=len(el.value); c.textContent=`${n} / ${el.dataset.count}`; c.classList.toggle('over',n>Number(el.dataset.count)); } }
+  if(draft&&el.form&&el.form.dataset.form==='draft') draft[el.name]=el.value;
+});
+function focusFirstError(){ const f=document.querySelector('.field.err input, .field.err textarea, .field.err select'); if(f) f.focus(); }
+
+document.addEventListener('submit',e=>{
+  const form=e.target, kind=form.dataset.form; if(!kind) return;
+  e.preventDefault();
+  const fd=new FormData(form);
+  if(kind==='modal'){ const r=modalOk&&modalOk(fd); if(typeof r==='string'){ const m=document.getElementById('merr'); m.textContent=r; m.hidden=false; } else closeModal(); return; }
+  if(kind==='draft'){
+    draft.theme=fd.get('theme'); draft.question=fd.get('question'); draft.pref=fd.get('pref');
+    const er={}; if(!draft.theme) er.theme='相談テーマを選んでください。';
+    const n=len(draft.question); if(n<10) er.question=`聞きたいことを10字以上で書いてください（いま${n}字）。`; else if(n>500) er.question=`500字以内にしてください（いま${n}字）。`;
+    draft.errors=er; if(Object.keys(er).length){ render(); focusFirstError(); return; }
+    draft.step='confirm'; draft.key='k'+Date.now()+Math.random().toString(36).slice(2,6); render(); return;
+  }
+  if(kind==='msg'){ const r=req(form.dataset.id); const body=(fd.get('body')||'').trim(); const er=document.getElementById('m-err');
+    if(!body){ er.textContent='メッセージを入力してください。'; er.hidden=false; form.querySelector('textarea').focus(); return; }
+    if(len(body)>2000){ er.textContent='2,000字以内にしてください。'; er.hidden=false; return; }
+    if(r.blocked) return; r.messages.push({by:side(),text:body,at:S.now}); r.updatedAt=S.now; save(); render(); const m=document.getElementById('msgs'); if(m) m.scrollTop=m.scrollHeight; document.getElementById('m-body')?.focus(); return; }
+  if(kind==='propose'){ const r=req(form.dataset.id); const v=fd.get('at'); const er=document.getElementById('p-err'); const at=v?parseLocal(v):NaN;
+    if(!v||isNaN(at)){ er.textContent='開始日時を入力してください。'; er.hidden=false; return; }
+    if(at<=S.now){ er.textContent='過去の日時は選べません。これから先の日時を選んでください。'; er.hidden=false; return; }
+    const s=side(); const wasSched=r.state===ST.SCHED; const v2=(cur(r)?.v||0)+1;
+    r.proposals.push({v:v2,startAt:at,method:fd.get('method'),duration:Number(fd.get('dur')),by:s,agreed:{student:s==='student',alumni:s==='alumni'}});
+    if(wasSched){ r.state=ST.ACC; r.needsReconfirm=true; sysMsg(r,`日程の変更が提案されました（版${v2}）。以前の合意は解除され、再確認が必要です。`); } else sysMsg(r,`候補日時が提案されました：${fDT(at)}（日本時間）`);
+    r.updatedAt=S.now; save(); render(); toast('候補を提案しました。相手の同意で確定します'); return; }
+  if(kind==='reflect'){ const r=req(form.dataset.id); const L=(fd.get('learned')||'').trim(), N=(fd.get('next')||'').trim(), D=fd.get('due');
+    const er={}; if(!L) er.learned='学んだことを書いてください。'; else if(len(L)>500) er.learned='500字以内にしてください。';
+    if(!N) er.next='次に行うことを書いてください。'; else if(len(N)>500) er.next='500字以内にしてください。';
+    if(!D) er.due='実行予定日を選んでください。'; else if(D<jstDate(S.now)&&!(r.reflection&&r.reflection.due===D)) er.due='今日以降の日付を選んでください。';
+    if(Object.keys(er).length){ views.reflect.err=er; render(); focusFirstError(); return; }
+    views.reflect.err=null; r.reflection={...(r.reflection||{}),learned:L,next:N,due:D,savedAt:S.now}; save(); render(); toast('保存しました'); return; }
+  if(kind==='follow'){ const r=req(form.dataset.id); const res=fd.get('result'); if(!res){ const er=document.getElementById('fl-err'); er.textContent='実行状況を選んでください。'; er.hidden=false; return; }
+    r.reflection.follow={result:res,note:(fd.get('note')||'').trim(),at:S.now}; save(); render(); toast('14日後の確認を記録しました'); return; }
+  if(kind==='profile'){ const id=S.me.alumni, p=S.profiles[id];
+    const n={display:(fd.get('display')||'').trim(),faculty:fd.get('faculty'),grad:String(fd.get('grad')||'').trim(),industry:fd.get('industry'),job:(fd.get('job')||'').trim(),themes:fd.getAll('themes'),intro:(fd.get('intro')||'').trim(),public:fd.get('public')==='1',open:fd.get('open')==='1',limit:Number(fd.get('limit'))};
+    const er={}; if(!n.display) er.display='表示名を入力してください。'; if(!n.job) er.job='職種を入力してください。';
+    if(n.themes.length<1||n.themes.length>5) er.themes='テーマは1〜5件選んでください。';
+    if(!n.intro) er.intro='自己紹介を入力してください。'; else if(len(n.intro)>500) er.intro='500字以内にしてください。';
+    if(!(n.limit>=1&&n.limit<=10)) er.limit='1〜10の数字を入力してください。';
+    if(Object.keys(er).length){ views.settings.err=er; render(); focusFirstError(); if(n.public) toast('入力が足りないため公開できません'); return; }
+    views.settings.err=null; Object.assign(p,n); save(); render();
+    toast(n.public&&activeCount(id)>n.limit?'保存しました。新しい依頼は止まり、進行中の相談は続きます':'保存しました'); return; }
+  if(kind==='interv'){ const m=Number(fd.get('min')); if(!(m>=1)) return; S.interventions.unshift({at:S.now,req:(fd.get('req')||'').trim()||'—',kind:fd.get('kind'),min:m}); save(); render(); toast('介入を記録しました'); return; }
+  if(kind==='register'){ const g=S.guest; g.kind=fd.get('kind'); g.name=(fd.get('name')||'').trim(); g.email=(fd.get('email')||'').trim(); g.extra=(fd.get('extra')||'').trim(); g.agree=!!fd.get('agree');
+    const er={}; if(!g.name) er.name='氏名を入力してください。'; if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(g.email)) er.email='メールアドレスの形式を確認してください（例：name@stu.emc.example）。';
+    else if(Object.values(S.users).some(u=>u.email===g.email)) er.email='このメールアドレスは登録済みです。ログイン画面からお入りください。';
+    if(!g.extra) er.extra='所属確認に使う情報を入力してください。'; if(!g.agree) er.agree='利用規約と個人情報の取り扱いへの同意が必要です。';
+    g.error=er; if(Object.keys(er).length){ save(); render(); focusFirstError(); return; }
+    g.step='mail'; save(); render(); return; }
+});
+
+function afterRender(){ const m=document.getElementById('msgs'); if(m) m.scrollTop=m.scrollHeight; }
+
+render();
+})();
+</script>
+
+</body></html>
